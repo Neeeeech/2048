@@ -1,9 +1,6 @@
 import pyglet, classes
 from math import log2
 
-pyglet.font.add_file('Andale Mono.ttf')
-andale_mono = pyglet.font.load('Andale Mono')
-
 game = classes.Game()
 print(f'{game}\n')
 
@@ -47,7 +44,7 @@ def give_tiles():
 @win.event()
 def on_key_press(symbol, modifiers):
     """gives keyboard control of the game"""
-    global game
+    global game, ARROW_KEYS
     if symbol in ARROW_KEYS.keys():
         game.record()
         ARROW_KEYS[symbol]()
@@ -56,6 +53,8 @@ def on_key_press(symbol, modifiers):
             game.add_tile()
     elif symbol == pyglet.window.key.SPACE:
         game.back()
+    elif symbol == pyglet.window.key.R:
+        game.reset()
     print(f'{game}\n')
 
 @win.event()

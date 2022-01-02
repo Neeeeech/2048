@@ -44,6 +44,18 @@ class Game:
             return False
         return True
 
+    def lost(self):
+        """if no more moves, returns True, else False"""
+        for i in range(4):
+            for j in range(3):
+                if self.tiles[i][j] == self.tiles[i][j+1] or self.tiles[j][i] == self.tiles[j][i+1]:
+                    return False
+        return True
+
+    def reset(self):
+        """reset to new (used to reset while keeping the same Game object, without calling __init__() outside)"""
+        self.__init__()
+
     def left(self):
         """shifts everything to the left, merging if necessary, by removing all zeros, and re-adding them on right"""
         for (i, j) in self.give_zeros()[::-1]:
