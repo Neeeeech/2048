@@ -4,6 +4,7 @@ class Game:
     def __init__(self):
         self.tiles = [[0]*4, [0]*4, [0]*4, [0]*4]
         self.history = []
+        self.add_tile(2)
 
     def __str__(self):
         return '\n'.join(str(self.tiles[i]) for i in range(4))
@@ -12,10 +13,11 @@ class Game:
         """updates where the zeros are; returns list of coord tuples of zeros"""
         return [(i, j) for i in range(4) for j in range(4) if self.tiles[i][j] == 0]
 
-    def add_tile(self):
-        """make a 2 appear in a random empty spot"""
-        (i, j) = choice(self.give_zeros())
-        self.tiles[i][j] = 2
+    def add_tile(self, num=1):
+        """make a num amount of 2s appear in a random empty spot"""
+        for _ in range(num):
+            (i, j) = choice(self.give_zeros())
+            self.tiles[i][j] = 2
 
     def record(self):
         """adds current state to self.history"""
@@ -25,16 +27,22 @@ class Game:
     def merge(self):
         """merges tiles of same number together horizontally"""
         for row in self.tiles:
-            # looks at each row individually, starting from the 2nd to last one
-            i = len(row) - 2
-            while i >= 0:
+            # looks at each row individually, starting from the left
+            i = 0
+            while i < len(row) - 1:
                 if row[i] == row[i+1]:
-                    # if the ith and i+1th are the same, double ith, remove i+1th, and shift i down twice,
-                    # so that you don't accidentally merge newly-created tiles
+                    # if the ith and i+1th are the same, double ith, remove i+1th
+                    # moving on after that means you won't merge an already-merged tile
                     row[i] *= 2
                     row.pop(i+1)
-                    i -= 1
-                i -= 1
+                i += 1
+
+    def check_prev_valid(self):
+        """checks if the previous move did anything. if yes, returns true, removes last self.history entry"""
+        if self.history[-1] == self.tiles:
+            self.history.pop(-1)
+            return False
+        return True
 
     def left(self):
         """shifts everything to the left, merging if necessary, by removing all zeros, and re-adding them on right"""
