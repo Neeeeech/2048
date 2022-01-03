@@ -1,100 +1,87 @@
 from random import choice
 
-class Game:
-    def __init__(self):
-        self.tiles = [[0]*4, [0]*4, [0]*4, [0]*4]
-        self.history = []
-        self.add_tile(2)
+def give_zeros(board):
+    """updates where the zeros are; returns list of coord tuples of zeros"""
+    return [(i, j) for i in range(4) for j in range(4) if board[i][j] == 0]
+
+def merge(board):
+    """merges tiles of same number together horizontally"""
+    for row in board:
+        # looks at each row individually, starting from the left
+        i = 0
+        while i < len(row) - 1:
+            if row[i] == row[i + 1]:
+                # if the ith and i+1th are the same, double ith, remove i+1th
+                # moving on after that means you won't merge an already-merged tile
+                row[i] *= 2
+                row.pop(i + 1)
+            i += 1
+
+def shift_left(board):
+    """shifts everything to the left, merging if necessary, by removing all zeros, and re-adding them on right"""
+    # not within the class, so all 4 move functions can make use of this one
+
+    # zeros: coords of where the zeros are; shifted_board: copy of board to work with
+    zeros = give_zeros(board)
+    shifted_board = [row.copy() for row in board]
+
+    # removes all zeros from shifted_board
+    for (i, j) in zeros[::-1]:
+        shifted_board[i].pop(j)
+
+    # merges horizontally
+    merge(shifted_board)
+
+    # replaces all the zeros on the right
+    for row in shifted_board:
+        while len(row) < 4:
+            row.append(0)
+
+    return shifted_board
+
+
+class GameState:
+    def __init__(self, board):
+        self.board = board
 
     def __str__(self):
-        return '\n'.join(str(self.tiles[i]) for i in range(4))
+        return '\n'.join(str(self.board[i]) for i in range(4))
 
-    def give_zeros(self):
-        """updates where the zeros are; returns list of coord tuples of zeros"""
-        return [(i, j) for i in range(4) for j in range(4) if self.tiles[i][j] == 0]
+    def cost(self):
+        """cost function for """
+        pass
 
-    def add_tile(self, num=1):
-        """make a num amount of 2s appear in a random empty spot"""
-        for _ in range(num):
-            (i, j) = choice(self.give_zeros())
-            self.tiles[i][j] = 2
+    def give_left(self):
+        """shifts left and returns new GameState"""
+        return GameState(shift_left(self.board))
 
-    def record(self):
-        """adds current state to self.history"""
-        # makes sure all the lists are copies
-        self.history.append([row.copy() for row in self.tiles])
-
-    def merge(self):
-        """merges tiles of same number together horizontally"""
-        for row in self.tiles:
-            # looks at each row individually, starting from the left
-            i = 0
-            while i < len(row) - 1:
-                if row[i] == row[i+1]:
-                    # if the ith and i+1th are the same, double ith, remove i+1th
-                    # moving on after that means you won't merge an already-merged tile
-                    row[i] *= 2
-                    row.pop(i+1)
-                i += 1
-
-    def check_prev_valid(self):
-        """checks if the previous move did anything. if yes, returns true, removes last self.history entry"""
-        if self.history[-1] == self.tiles:
-            self.history.pop(-1)
-            return False
-        return True
-
-    def lost(self):
-        """if no more moves, returns True, else False"""
-        for i in range(4):
-            for j in range(3):
-                if self.tiles[i][j] == self.tiles[i][j+1] or self.tiles[j][i] == self.tiles[j][i+1]:
-                    return False
-        return True
-
-    def reset(self):
-        """reset to new (used to reset while keeping the same Game object, without calling __init__() outside)"""
-        self.__init__()
-
-    def left(self):
-        """shifts everything to the left, merging if necessary, by removing all zeros, and re-adding them on right"""
-        for (i, j) in self.give_zeros()[::-1]:
-            self.tiles[i].pop(j)
-        self.merge()
-        for row in self.tiles:
-            while len(row) < 4:
-                row.append(0)
-
-    def right(self):
-        """shifts everything to the right, merging if necessary"""
+    def give_right(self):
+        """shifts right and returns new GameState"""
         # reverse all rows, shift left, before reversing again
-        self.tiles = [row[::-1] for row in self.tiles]
-        self.left()
-        self.tiles = [row[::-1] for row in self.tiles]
+        shifted_board = shift_left([row[::-1] for row in self.board])
+        return GameState([row[::-1] for row in shifted_board])
 
-    def up(self):
-        """shifts everything up, merging if necessary"""
-        # transposes self.tiles, shift left, before transposing again
-        self.tiles = list(map(list, zip(*self.tiles)))
-        self.left()
-        self.tiles = list(map(list, zip(*self.tiles)))
+    def give_up(self):
+        """shifts up and returns new GameState"""
+        # transposes self.tiles, shift left
+        shifted_board = shift_left(list(map(list, zip(*self.board))))
+        # transposes again and places in new GameState
+        return GameState(list(map(list, zip(*shifted_board))))
 
-    def down(self):
-        """shifts everything down, merging if necessary"""
-        # transposes self.tiles, shifts right, before transposing again
-        self.tiles = list(map(list, zip(*self.tiles)))
-        self.right()
-        self.tiles = list(map(list, zip(*self.tiles)))
-
-    def back(self):
-        """reverts to previous position"""
-        if self.history:
-            self.tiles = self.history[-1].copy()
-            self.history.pop(-1)
+    def give_down(self):
+        """shifts down and returns new GameState"""
+        # transposes self.tiles, reverses horizontally, shifts left
+        shifted_board = shift_left([row[::-1] for row in list(map(list, zip(*self.board)))])
+        # reverses
+        shifted_board = [row[::-1] for row in shifted_board]
+        # transposes and places in new GameState
+        return GameState(list(map(list, zip(*shifted_board))))
 
 
 if __name__ == '__main__':
-    a = Game()
+    state = GameState([[0,0,2,2],[0,2,0,2],[0,0,0,2],[2,2,2,2]])
+    print()
+    """a = Game()
     while True:
         print(a)
         b = input()
@@ -114,4 +101,4 @@ if __name__ == '__main__':
             a.back()
         else:
             a.record()
-            a.add_tile()
+            a.add_tile()"""
