@@ -21,7 +21,7 @@ def shift_left(board):
     """shifts everything to the left, merging if necessary, by removing all zeros, and re-adding them on right"""
     # not within the class, so all 4 move functions can make use of this one
 
-    # zeros: coords of where the zeros are; shifted_board: copy of board to work with
+    # zeros: co-ords of where the zeros are; shifted_board: copy of board to work with
     zeros = give_zeros(board)
     shifted_board = [row.copy() for row in board]
 
@@ -142,10 +142,19 @@ class Game:
         self.prev_state = None
         return True
 
+    def lost(self):
+        """if no more moves, returns True, else False"""
+        board = self.current_state.board
+        for i in range(4):
+            for j in range(3):
+                if board[i][j] == board[i][j+1] or board[j][i] == board[j][i+1]:
+                    return False
+        return True
+
 
 if __name__ == '__main__':
-    #game = Game([[0,0,2,2],[0,2,0,2],[0,0,0,2],[2,2,2,2]])
-    #print()
+    # game = Game([[0,0,2,2],[0,2,0,2],[0,0,0,2],[2,2,2,2]])
+    # print()
     a = Game()
     while True:
         print(a)
