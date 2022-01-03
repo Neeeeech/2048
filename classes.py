@@ -48,8 +48,16 @@ class GameState:
         return '\n'.join(str(self.board[i]) for i in range(4))
 
     def cost(self):
-        """cost function for """
+        """cost function for self GameState"""
         pass
+
+    def add_tile(self, num=1):
+        """make a num amount of 2s appear in a random empty spot and return new GameState"""
+        shifted_board = [row.copy() for row in self.board]
+        for _ in range(num):
+            (i, j) = choice(give_zeros(shifted_board))
+            shifted_board[i][j] = 2
+        return GameState(shifted_board)
 
     def give_left(self):
         """shifts left and returns new GameState"""
@@ -78,27 +86,77 @@ class GameState:
         return GameState(list(map(list, zip(*shifted_board))))
 
 
+# constants for Game
+LEFT, RIGHT, UP, DOWN = 0, 1, 2, 3
+MOVE_LIST = (GameState.give_left, GameState.give_right, GameState.give_up, GameState.give_down)
+
+class Game:
+    def __init__(self, board=None):
+        if board is None:
+            board = [[0]*4, [0]*4, [0]*4, [0]*4]
+        self.current_state = GameState(board).add_tile(2)
+        self.prev_state = None
+
+    def __str__(self):
+        return str(self.current_state)
+
+    def reset(self):
+        """runs init without needing to create a new object"""
+        self.__init__()
+
+    def check_valid(self, next_state):
+        """checks if the next state is different i.e. the move that caused next state is valid"""
+        return self.current_state.board != next_state.board
+
+    def shift(self, func):
+        """shifts direction given by func if possible, returns whether possible"""
+        potential_next = func(self.current_state)
+        if self.check_valid(potential_next):
+            # updates states, while adding a new tile to current_state
+            self.prev_state = self.current_state
+            self.current_state = potential_next.add_tile()
+            return True
+        return False
+
+    def left(self):
+        """shifts left"""
+        return self.shift(GameState.give_left)
+
+    def right(self):
+        """shifts right"""
+        return self.shift(GameState.give_right)
+
+    def up(self):
+        """shifts up"""
+        return self.shift(GameState.give_up)
+
+    def down(self):
+        """shifts down"""
+        return self.shift(GameState.give_down)
+
+    def back(self):
+        """goes back"""
+        if self.prev_state is None:
+            return False
+        self.current_state = self.prev_state
+        self.prev_state = None
+        return True
+
+
 if __name__ == '__main__':
-    state = GameState([[0,0,2,2],[0,2,0,2],[0,0,0,2],[2,2,2,2]])
-    print()
-    """a = Game()
+    #game = Game([[0,0,2,2],[0,2,0,2],[0,0,0,2],[2,2,2,2]])
+    #print()
+    a = Game()
     while True:
         print(a)
         b = input()
         if b == 'a':
-            a.record()
             a.left()
         elif b == 'd':
-            a.record()
             a.right()
         elif b == 'w':
-            a.record()
             a.up()
         elif b == 's':
-            a.record()
             a.down()
         elif b == 'q':
             a.back()
-        else:
-            a.record()
-            a.add_tile()"""

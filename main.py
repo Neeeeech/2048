@@ -27,18 +27,18 @@ def give_tiles():
     text, rectangles = [], []
     for i in range(4):
         for j in range(4):
-            if game.tiles[i][j]:
-                length = len(str(game.tiles[i][j]))
+            if game.current_state.board[i][j]:
+                length = len(str(game.current_state.board[i][j]))
                 rectangles.append(pyglet.shapes.Rectangle(30+125*j, 405-125*i, 105, 105,
-                                                          color=color_gen(game.tiles[i][j]),
+                                                          color=color_gen(game.current_state.board[i][j]),
                                                           batch=batch))
-                text.append(pyglet.text.Label(str(game.tiles[i][j]),
-                                                     font_name='Andale Mono',
-                                                     font_size=40 if length <= 3 else 30,
-                                                     x=80+125*j-(11 if length > 3 else 15)*length,
-                                                     y=440-125*i + (5 if length > 3 else 0),
-                                                     align='center',
-                                                     color=(0,0,0,255)))
+                text.append(pyglet.text.Label(str(game.current_state.board[i][j]),
+                                              font_name='Andale Mono',
+                                              font_size=40 if length <= 3 else 30,
+                                              x=80+125*j-(11 if length > 3 else 15)*length,
+                                              y=440-125*i + (5 if length > 3 else 0),
+                                              align='center',
+                                              color=(0,0,0,255)))
     return text, rectangles
 
 @win.event()
@@ -46,11 +46,7 @@ def on_key_press(symbol, modifiers):
     """gives keyboard control of the game"""
     global game, ARROW_KEYS
     if symbol in ARROW_KEYS.keys():
-        game.record()
         ARROW_KEYS[symbol]()
-        # adding another tile after moving (if valid)
-        if game.check_prev_valid():
-            game.add_tile()
     elif symbol == pyglet.window.key.SPACE:
         game.back()
     elif symbol == pyglet.window.key.R:
